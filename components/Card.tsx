@@ -1,105 +1,48 @@
+import { ProductParams } from "@/constant.types";
 import Image from "next/image";
 import Link from "next/link";
 
-export type BadgeTone = "red" | "green" | "orange";
+export default function Card({ products }: { products: ProductParams }) {
+   return (
+      <article className="group rounded-xl mt-7 bg-light-100 ring-1 ring-light-300 transition-colors hover:ring-dark-500 p-4">
 
-export interface CardProps {
-  title: string;
-  description?: string;
-  subtitle?: string;
-  meta?: string | string[];
-  imageSrc: string;
-  imageAlt?: string;
-  price?: string | number;
-  href?: string;
-  badge?: { label: string; tone?: BadgeTone };
-  className?: string;
-}
+         {/* Image + Link */}
+         <Link href={`/products/${products.id}`}>
+            <div className="relative aspect-square overflow-hidden rounded-xl bg-light-200">
+               <Image
+                  src={products.image_url_array[0]}
+                  alt={products.name}
+                  width={600}
+                  height={600}
+                  className="object-cover transition-all duration-500 group-hover:scale-110 hover:shadow-xl"
+               />
+            </div>
+         </Link>
 
-const toneToBg: Record<BadgeTone, string> = {
-  red: "text-[--color-red]",
-  green: "text-[--color-green]",
-  orange: "text-[--color-orange]",
-};
+         {/* Content */}
+         <div className="mt-4 space-y-2">
+            <Link href={`/products/${products.id}`}>
+               <p className="text-base font-medium truncate">
+                  {products.name}
+               </p>
+            </Link>
 
-export default function Card({
-  title,
-  description,
-  subtitle,
-  meta,
-  imageSrc,
-  imageAlt = title,
-  price,
-  href,
-  badge,
-  className = "",
-}: CardProps) {
-  const displayPrice =
-    price === undefined
-      ? undefined
-      : typeof price === "number"
-      ? `$${price.toFixed(2)}`
-      : price;
+            <p className="text-xs text-gray-500 line-clamp-2">
+               {products.description}
+            </p>
 
-  const content = (
-    <article
-      className={`group rounded-xl bg-light-100 hover:bg-light-200 ring-1 ring-light-300 transition-colors hover:ring-dark-500 ${className}`}
-    >
-      <div className="relative aspect-square overflow-hidden rounded-t-xl bg-light-200">
-        {/* 🔥 Badge */}
-        {badge && (
-          <span
-            className={`absolute top-2 left-2 z-10 rounded-full bg-light-100 px-2 py-1 text-xs font-medium ${toneToBg[badge.tone ?? "orange"]}`}
-          >
-            {badge.label}
-          </span>
-        )}
+            <p className="text-xs text-gray-400">(4.5)</p>
 
-        <Image
-          src={imageSrc}
-          alt={imageAlt}
-          fill
-          sizes="(min-width: 1280px) 360px, (min-width: 1024px) 300px, (min-width: 640px) 45vw, 90vw"
-          className="object-cover transition-all duration-300 group-hover:scale-105 group-hover:brightness-95"
-        />
-      </div>
+            <div className="flex items-center justify-between mt-2">
+               <p className="text-lg font-bold">
+                  ${products.price ? products.price.toFixed(2) : "0.00"}
+               </p>
 
-      <div className="p-4">
-        <div className="mb-1 flex items-baseline justify-between gap-3">
-          <h3 className="text-heading-3 text-dark-900">{title}</h3>
-          {displayPrice && (
-            <span className="text-body-medium text-[--color-green]">
-              {displayPrice}
-            </span>
-          )}
-        </div>
-
-        {description && (
-          <p className="text-body text-dark-700">{description}</p>
-        )}
-
-        {subtitle && (
-          <p className="text-body text-dark-700">{subtitle}</p>
-        )}
-
-        {meta && (
-          <p className="mt-1 text-caption text-dark-700">
-            {Array.isArray(meta) ? meta.join(" • ") : meta}
-          </p>
-        )}
-      </div>
-    </article>
-  );
-
-  return href ? (
-    <Link
-      href={href}
-      aria-label={title}
-      className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[--color-dark-500]"
-    >
-      {content}
-    </Link>
-  ) : (
-    content
-  );
+               <button className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded hover:bg-amber-700">
+                  Add to Cart
+               </button>
+            </div>
+         </div>
+      </article>
+   );
 }
