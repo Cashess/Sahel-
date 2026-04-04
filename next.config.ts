@@ -1,16 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  images:{
-    remotePatterns:[
+  images: {
+    unoptimized: true, // ← bypasses server-side fetching entirely
+    remotePatterns: [
       {
         protocol: "https",
         hostname: "efpdfrzlabvciwmhuuqd.supabase.co",
-        pathname: "/**"
-      }
-    ]
-  }
+        pathname: "/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
