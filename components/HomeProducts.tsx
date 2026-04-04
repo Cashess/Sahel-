@@ -1,38 +1,41 @@
-import { FC } from "react";
-import Card from "./Card";
 import { ProductParams } from "@/constant.types";
+import ProductCard from "./CardList";
 
 interface HomeProductsParams {
-    products: ProductParams[]; // adjust as needed
-};
-
+  products: ProductParams[];
+}
 const HomeProducts = ({ products }: HomeProductsParams) => {
+  return (
+    <div className="flex flex-col items-center pt-14">
+      <p className="text-2xl font-medium text-left w-full text-black">Popular products</p>
 
-    return (
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <article aria-labelledby="latest" className="pb-12">
-
-            <h2 className="mb-6 text-heading-3 text-dark-900">
-                Fresh from the Farm
-            </h2>
-
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-16">
-                {products?.map((product, index: number) => (
-                    <Card
-                        key={product.id}
-                        products={product}
-                    />
-                ))}
-            </div>
-            <div className="flex items-center">
-
-            <button className="px-12 py-2.5 mb-4 border rounded bg-amber-200">
-                View All
-            </button>
-            </div>
-                        </article>
-        </div>
-    );
+      <div
+        className="
+        
+    grid 
+    max-md:gap-1.5 
+    gap-3
+    mt-6 
+    pb-14 
+    w-full
+    lg: max-w-[1500px]
+    grid-cols-2 
+      sm:grid-cols-2 
+      md:grid-cols-2 
+      lg:grid-cols-3 
+      xl:grid-cols-3 
+      2xl:grid-cols-3
+  "
+      >
+        {products.map((product, index: number) => (
+          <ProductCard key={index} product={product} />
+        ))}
+      </div>
+      {/* <button className="px-12 py-2.5 mb-4 border rounded bg-[#043033] text-white hover:bg-black transition">
+        See more
+      </button> */}
+    </div>
+  );
 };
 
 export default HomeProducts;

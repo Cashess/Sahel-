@@ -6,7 +6,7 @@ import { createClient } from "../server"
 export async function fetchProducts(
   retries = 3,
   delay = 500
-): Promise<ProductParams[]> {
+): Promise<ProductParams[] | null> {
   const supabase = await createClient();
 
   try {
@@ -14,36 +14,30 @@ export async function fetchProducts(
       .from("products")
       .select("*");
 
-    if (error) {
-      throw error; // 👈 trigger retry
-    }
+    if (error) throw error;
 
     return products ?? [];
-
   } catch (error: any) {
     console.error(
       `❌ Products fetch error (attempt ${4 - retries}/3):`,
       error.message
     );
 
-    // 🚫 If it's a schema/table issue, don't retry
     if (
-      error?.code === "42P01" || // table doesn't exist
+      error?.code === "42P01" ||
       error?.message?.includes("permission denied")
     ) {
       console.error("🚫 Critical DB issue — skipping retries");
-      return [];
+      return null;
     }
 
     if (retries > 0) {
-      // ⏳ wait before retry
       await new Promise((res) => setTimeout(res, delay));
-
-      return fetchProducts(retries - 1, delay * 2); // 🔥 exponential backoff
+      return fetchProducts(retries - 1, delay * 2);
     }
 
     console.error("💀 Final failure fetching products");
-    return [];
+    return null;
   }
 }
 
