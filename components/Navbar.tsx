@@ -10,8 +10,8 @@ import { useRouter } from "next/navigation";
 import { cartStore } from "./store/cart-store";
 
 const NAV_LINKS = [
-  { label: "Nut", href: "/products?categories=nut" },
-  { label: "Paste", href: "/products?categories=paste" },
+  { label: "Nut", href: "/" },
+  { label: "Paste", href: "/" },
   { label: "Custom", href: "/custom" },
   { label: "Contact", href: "/contact" },
   { label: "Orders", href: "/orders" },

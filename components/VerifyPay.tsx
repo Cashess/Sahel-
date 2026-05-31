@@ -38,22 +38,44 @@ export const VerifyPay = ({
           localStorage.getItem("paymentInformation") || "{}"
         );
 
+        // ✅ Buy-now saves as `fullAddressFields`, cart saves as `address` — handle both
+        const address = localStorageItems.fullAddressFields ?? localStorageItems.address;
+
+        if (!address) {
+          toast.error("Address information missing. Please contact support.");
+          return;
+        }
+
+        const isBuyNow = !!localStorageItems.fullAddressFields;
+
         const orderItems = {
           user_id: localStorageItems.userId,
           amount: localStorageItems.amount,
           user_email: localStorageItems.userEmail,
-          productName: "Cart Purchase",
-          quantity: localStorageItems.items?.length || 1,
-          productCategory: "Multiple",
-          productImage: localStorageItems.items?.[0]?.image_url_array?.[0] || "",
-          address: localStorageItems.address,
+          productName: isBuyNow
+            ? localStorageItems.productName
+            : "Cart Purchase",
+          quantity: isBuyNow
+            ? localStorageItems.quantity
+            : localStorageItems.items?.length || 1,
+          productCategory: isBuyNow
+            ? localStorageItems.productCategory
+            : "Multiple",
+          productImage: isBuyNow
+            ? localStorageItems.image
+            : localStorageItems.items?.[0]?.image_url_array?.[0] || "",
+          address,
           paymentReference: reference,
         };
 
         const orderId = await createOrder(orderItems);
 
-        // ✅ Clear cart only after order succeeds
-        cartStore.getState().clearCartItems();
+        localStorage.removeItem("paymentInformation");
+
+        // Clear cart only for cart purchases
+        if (!isBuyNow) {
+          cartStore.getState().clearCartItems();
+        }
 
         router.replace(`/order/${orderId}`);
       } catch (err) {

@@ -2,6 +2,7 @@
 
 import { OrderParams } from "@/constant.types";
 import { createClient } from "../server";
+import { redirect } from "next/navigation";
 
 interface OrderItemsParams {
   amount: number;
@@ -117,7 +118,7 @@ export async function fetchUserOrders(): Promise<OrderParams[]> {
   const { data } = await supabase.auth.getUser();
   const userId = data.user?.id;
   if (!userId) {
-    throw new Error("User not authenticated");
+    return redirect("/login");
   }
 
   const { data: allUserOrders, error } = await supabase

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { ArrowBigDown, ArrowBigUp,  ArrowRightCircleIcon } from "lucide-react";
+import { ArrowBigDown, ArrowBigUp, ArrowRightCircleIcon } from "lucide-react";
 
 const BuyNowPage = ({
   product,
@@ -17,13 +17,13 @@ const BuyNowPage = ({
   addresses: AddressParams[];
 }) => {
   const { session } = useAppContext();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
-  const [userAddresses, setUserAddresses] = useState<AddressParams[]>();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [totalCost, setTotalCost] = useState(product.price);
   const [selectedAddress, setSelectedAddress] = useState<AddressParams | null>(
-    null
+    // Pre-select the default address if one exists
+    addresses?.find((a) => a.is_default) ?? addresses?.[0] ?? null
   );
 
   const increaseQTY = () => setQuantity((prev) => prev + 1);
@@ -37,54 +37,48 @@ const BuyNowPage = ({
     setIsDropdownOpen(false);
   };
 
+  // Keep total in sync with quantity changes
+  useEffect(() => {
+    setTotalCost(product.price * quantity);
+  }, [quantity, product.price]);
+
   const payNow = async () => {
     if (!selectedAddress) return toast.error("Select an address first!");
     try {
-      const res = await fetch("/api/payment", {
+      const orderMetadata = {
+        userId: session?.user?.id,
+        productName: product.name,
+        productCategory: product.category,
+        quantity,
+        image: product.image_url_array[0],
+        amount: totalCost + product.product_shipping_fee,
+        userEmail: session?.user?.email,
+        fullAddressFields: selectedAddress,
+      };
+
+      const res = await fetch("/api/paymentBuyNow", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: session?.user?.email,
           amount: (totalCost + product.product_shipping_fee) * 100,
           source: "buy-now",
+          metadata: orderMetadata,
         }),
       });
+
       const response = await res.json();
+      const authorization_url = response?.data?.authorization_url;
+      if (!authorization_url)
+        throw new Error(response.error || "Payment initialization failed");
 
-    // Safety check
-    const authorization_url = response?.data?.authorization_url;
-    if (!authorization_url) throw new Error(response.error || "Payment initialization failed");
-
-      
-      localStorage.setItem(
-        "paymentInformation",
-        JSON.stringify({
-          userId: session?.user?.id,
-          productName: product.name,
-          productCategory: product.category,
-          quantity,
-          image: product.image_url_array[0],
-          amount: totalCost + product.product_shipping_fee,
-          userEmail: session?.user?.email,
-          fullAddressFields: selectedAddress,
-        })
-      );
+      localStorage.setItem("paymentInformation", JSON.stringify(orderMetadata));
       router.push(authorization_url);
     } catch (err) {
       console.error("Payment Error:", err);
       toast.error("Payment failed. Please try again.");
     }
   };
-
-  useEffect(() => {
-    localStorage.removeItem("paymentInformation");
-    if (addresses) {
-      setUserAddresses(addresses);
-      const defaultAddress = addresses.find((addr) => addr.is_default);
-      setSelectedAddress(defaultAddress ?? null);
-    }
-    setTotalCost(product.price * quantity);
-  }, [quantity, product.price, addresses]);
 
   return (
     <div className="flex flex-col md:flex-row gap-12 px-6 md:px-16 lg:px-32 pt-14 mb-20">
@@ -113,17 +107,22 @@ const BuyNowPage = ({
                     className="object-cover"
                   />
                 </div>
-                <div className="text-sm font-medium text-gray-700">{product.name}</div>
+                <div className="text-sm font-medium text-gray-700">
+                  {product.name}
+                </div>
               </td>
-              <td className="py-4">{process.env.NEXT_PUBLIC_CURRENCY}{product.price}</td>
+              <td className="py-4">
+                {process.env.NEXT_PUBLIC_CURRENCY}
+                {product.price}
+              </td>
               <td className="py-4">
                 <div className="flex items-center gap-2">
                   <button onClick={decreaseQTY} className="p-1 border rounded">
-                    <ArrowBigDown width={16} height={16}/>
+                    <ArrowBigDown width={16} height={16} />
                   </button>
                   <span className="w-8 text-center">{quantity}</span>
                   <button onClick={increaseQTY} className="p-1 border rounded">
-                    <ArrowBigUp width={16} height={16}/>
+                    <ArrowBigUp width={16} height={16} />
                   </button>
                 </div>
               </td>
@@ -133,7 +132,10 @@ const BuyNowPage = ({
 
         <div className="flex flex-wrap gap-2">
           {product.sizes?.map((size, i) => (
-            <span key={i} className="px-3 py-1 border rounded text-sm cursor-pointer hover:bg-gray-100">
+            <span
+              key={i}
+              className="px-3 py-1 border rounded text-sm cursor-pointer hover:bg-gray-100"
+            >
               {size}
             </span>
           ))}
@@ -143,7 +145,7 @@ const BuyNowPage = ({
           href="/"
           className="inline-flex items-center gap-2 bg-black text-[#fce3c7] px-4 py-2 rounded-2xl hover:bg-gray-800 transition"
         >
-          <ArrowRightCircleIcon width={20} height={20}/> Continue Shopping
+          <ArrowRightCircleIcon width={20} height={20} /> Continue Shopping
         </Link>
       </div>
 
@@ -154,57 +156,100 @@ const BuyNowPage = ({
 
         {/* Address Selector */}
         <div className="relative">
-          <label className="text-sm font-medium text-gray-500 mb-1 block">Select Address</label>
+          <label className="text-sm font-medium text-gray-500 mb-1 block">
+            Select Address
+          </label>
           <button
-            onClick={() => setIsDropdownOpen(prev => !prev)}
+            onClick={() => setIsDropdownOpen((prev) => !prev)}
             className="w-full text-left px-4 py-2 border rounded bg-gray-50 flex justify-between items-center"
           >
-            {selectedAddress
-              ? `${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state}`
-              : "Select Address"}
-            <span className={`transition-transform ${isDropdownOpen ? "rotate-180" : "rotate-0"}`}>▼</span>
+            <span className="truncate pr-2">
+              {selectedAddress
+                ? `${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state}`
+                : "Select Address"}
+            </span>
+            <span
+              className={`transition-transform shrink-0 ${isDropdownOpen ? "rotate-180" : "rotate-0"}`}
+            >
+              ▼
+            </span>
           </button>
 
           {isDropdownOpen && (
             <ul className="absolute w-full bg-white border rounded mt-1 shadow-lg z-20 max-h-60 overflow-y-auto">
-              {userAddresses?.map((addr, i) => (
-                <li
-                  key={i}
-                  onClick={() => handleAddressSelect(addr)}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-500"
-                >
-                  {addr.address}, {addr.city}, {addr.state}
+              {addresses && addresses.length > 0 ? (
+                addresses.map((addr, i) => (
+                  <li
+                    key={i}
+                    onClick={() => handleAddressSelect(addr)}
+                    className={`px-4 py-2 cursor-pointer text-sm transition-colors ${
+                      selectedAddress === addr
+                        ? "bg-[#f0faf7] text-[#043033] font-medium"
+                        : "text-gray-500 hover:bg-gray-100"
+                    }`}
+                  >
+                    <p className="font-medium text-gray-700">{addr.title}</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {addr.address}, {addr.city}, {addr.state}
+                    </p>
+                  </li>
+                ))
+              ) : (
+                <li className="px-4 py-3 text-sm text-gray-400 text-center">
+                  No saved addresses
                 </li>
-              ))}
-              <Link href="/address" className="block px-4 py-2 text-center text-blue-600 hover:bg-gray-100">
-                + Add New Address
-              </Link>
+              )}
+              <li>
+                <Link
+                  href="/address"
+                  className="block px-4 py-2 text-center text-sm text-[#043033] font-medium hover:bg-gray-50 border-t border-gray-100"
+                >
+                  + Add New Address
+                </Link>
+              </li>
             </ul>
           )}
         </div>
 
         {/* Promo Code */}
         <div>
-          <label className="text-sm font-medium text-gray-500 mb-1 block">Promo Code</label>
+          <label className="text-sm font-medium text-gray-500 mb-1 block">
+            Promo Code
+          </label>
           <div className="flex gap-2">
             <input
               type="text"
               placeholder="Enter promo code"
-              className="flex-grow p-2 border rounded"
+              className="grow p-2 border rounded"
             />
-            <button className="bg-black text-white px-4 py-2 rounded hover:bg-[#043033]">Apply</button>
+            <button className="bg-black text-white px-4 py-2 rounded hover:bg-[#043033]">
+              Apply
+            </button>
           </div>
         </div>
 
         {/* Cost Summary */}
         <div className="space-y-2">
           <div className="flex justify-between text-black">
+            <span>Subtotal</span>
+            <span>
+              {process.env.NEXT_PUBLIC_CURRENCY}
+              {totalCost}
+            </span>
+          </div>
+          <div className="flex justify-between text-black">
             <span>Shipping Fee</span>
-            <span>{process.env.NEXT_PUBLIC_CURRENCY}{product.product_shipping_fee}</span>
+            <span>
+              {process.env.NEXT_PUBLIC_CURRENCY}
+              {product.product_shipping_fee}
+            </span>
           </div>
           <div className="flex justify-between font-semibold text-lg border-t pt-2 text-black">
             <span>Total</span>
-            <span>{process.env.NEXT_PUBLIC_CURRENCY}{totalCost + product.product_shipping_fee}</span>
+            <span>
+              {process.env.NEXT_PUBLIC_CURRENCY}
+              {totalCost + product.product_shipping_fee}
+            </span>
           </div>
         </div>
 
@@ -216,7 +261,9 @@ const BuyNowPage = ({
             Pay Now
           </button>
         ) : (
-          <p className="text-sm text-gray-500 text-center mt-2">**Please select an address to continue**</p>
+          <p className="text-sm text-gray-500 text-center mt-2">
+            ** Please select an address to continue **
+          </p>
         )}
       </div>
     </div>
