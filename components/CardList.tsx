@@ -1,3 +1,4 @@
+import Product from "@/app/products/[id]/page";
 import { ProductParams } from "@/constant.types";
 import Image from "next/image";
 import Link from "next/link";

@@ -1,6 +1,7 @@
 import { JSX } from "react/jsx-runtime";
 
 interface ProductParams {
+  rating: number;
   id: string;
   author_id: string;
   sizes: string[];
@@ -54,6 +55,7 @@ export type OrderStatus =
   | "reviewed";
 
 export interface OrderParams {
+  payment_method: JSX.Element;
   id: string; // UUID
   user_id: string; // UUID
   user_email?: string | null;

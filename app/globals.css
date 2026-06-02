@@ -15,17 +15,12 @@
     --color-dark: #0f0f0f;
     --color-muted: #9ca3af;
     --color-yellow: #c69c6d;
-
     --color-dark-900: #0f0f0f;
 
     --font-sans: "Mona Sans", sans-serif;
     --font-modern-negra: "Modern Negra", sans-serif;
     --font-serif: "DM Serif Text", serif;
     
-    --font-sans: var(--font-dm-sans);
-    --font-serif: var(--font-cormorant);
-    --font-mono: var(--font-geist-mono);
-
     --radius-4xl: 2rem;
 
     --text-heading-1: 3rem;
@@ -42,14 +37,8 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    background: radial-gradient(circle at top, #c2c5aa, #c2c5aa);
+    background: radial-gradient(circle at top, #1a1a1a, #0a0a0a);
     color: #f5e6d3;
     scroll-behavior: smooth;
     overflow-x: hidden;
-}
-
-/* ROOT FONTS */
-:root {
-    --font-geist-sans: "Geist", sans-serif;
-    --font-geist-mono: "Geist Mono", monospace;
 }
