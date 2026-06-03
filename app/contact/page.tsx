@@ -26,51 +26,37 @@ const ContactPage = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  e.preventDefault();
+  setIsSubmitting(true);
 
-    // Create email content
-    const emailContent = `
-      NEW CUSTOM ORDER INQUIRY
-      
-      Customer Name: ${formData.name}
-      Email: ${formData.email}
-      Phone: ${formData.phone}
-      
-      Order Details:
-      - Product: Raw Cashew Nuts
-      - Quantity: ${formData.quantity || 'Not specified'} kg
-      - Grade: ${formData.grade || 'Standard'}
-      
-      Subject: ${formData.subject}
-      
-      Message:
-      ${formData.message}
-    `;
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
 
-    // Send to your email using mailto
-    const mailtoLink = `mailto:your-email@example.com?subject=Custom Order Inquiry: ${formData.subject}&body=${encodeURIComponent(emailContent)}`;
-    
-    // Open email client
-    window.location.href = mailtoLink;
-    
-    // Also log to console for testing
-    console.log('Order Inquiry:', emailContent);
-    
-    setTimeout(() => {
-      toast.success('Opening your email client! Please send the inquiry.');
-      setIsSubmitting(false);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: '',
-        quantity: '',
-        grade: '',
-      });
-    }, 500);
-  };
+    const result = await res.json();
+
+    if (!res.ok) throw new Error(result.error || 'Something went wrong');
+
+    toast.success("Inquiry sent! We'll get back to you within 24 hours.");
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: '',
+      quantity: '',
+      grade: '',
+    });
+  } catch (err) {
+    toast.error('Failed to send. Please try WhatsApp or email us directly.');
+    console.error(err);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const cashewGrades = [
     'W240 (Whole - Large)',
@@ -309,14 +295,14 @@ const ContactPage = () => {
                     Message / Special Requirements *
                   </label>
                   <div className="relative">
-                    <MessageSquare className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                    <MessageSquare className="absolute left-3 top-3 w-4 h-4 text-gray-800" />
                     <textarea
                       name="message"
                       required
                       rows={5}
                       value={formData.message}
                       onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-800 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                       placeholder="Tell us about your specific requirements, packaging preferences, delivery location, etc."
                     />
                   </div>
@@ -326,7 +312,7 @@ const ContactPage = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="mt-6 w-full bg-[#043033] text-white py-3 rounded-xl font-semibold hover:bg-[#021a16] transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-6 w-full bg-[#043033] text-gray-500 py-3 rounded-xl font-semibold hover:bg-[#021a16] transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" />
                 {isSubmitting ? 'Sending...' : 'Send Inquiry'}
@@ -338,7 +324,7 @@ const ContactPage = () => {
               </p>
             </form>
           </div>
-          <Link href="/" className="text-gray-100 hover:text-amber-600 transition">
+          <Link href="/" className="text-gray-400 hover:text-amber-600 transition">
             ← Back to Home
           </Link>
         </div>

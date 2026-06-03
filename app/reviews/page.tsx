@@ -7,7 +7,6 @@ import Link from "next/link";
 import { fetchUserOrders } from "@/lib/supabase/actions/order.actions"; // adjust import to your actual action
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { ArrowRight, Star, Package } from "lucide-react";
 
 export default async function ReviewsPage() {

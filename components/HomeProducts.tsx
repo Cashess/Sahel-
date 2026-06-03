@@ -7,7 +7,7 @@ interface HomeProductsParams {
 const HomeProducts = ({ products }: HomeProductsParams) => {
   return (
     <div className="flex flex-col items-center pt-14">
-      <p className="text-2xl font-medium text-left w-full text-black">Popular products</p>
+      <p className="text-2xl font-medium text-left w-full text-gray-200">Popular products</p>
 
       <div
         className="

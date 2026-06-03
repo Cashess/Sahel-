@@ -17,6 +17,8 @@ const CartPage = ({ addresses }: { addresses: AddressParams[] }) => {
   const { items, decreaseQty, increaseQty } = cartStore((state) => state);
   const { session } = useAppContext();
 
+  const SHIPPING_FEE = 5;
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userAddresses, setUserAddresses] = useState<AddressParams[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<AddressParams | null>(null);
@@ -30,14 +32,8 @@ const CartPage = ({ addresses }: { addresses: AddressParams[] }) => {
       0
     );
 
-    const shipping = items.reduce(
-      (sum, item) =>
-        sum + (item.product_shipping_fee ?? 0) * item.quantity,
-      0
-    );
-
     setTotalCost(total);
-    setDeducedShippingFee(shipping);
+    setDeducedShippingFee(items.length > 0 ? SHIPPING_FEE : 0);
   }, [items]);
 
   // ✅ Handle addresses
@@ -62,7 +58,7 @@ const CartPage = ({ addresses }: { addresses: AddressParams[] }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: session?.user?.email,
-          amount: finalAmount * 100, // Paystack uses kobo
+          amount: finalAmount * 100 * 1375,
           source: "cart-checkout",
         }),
       });
@@ -225,7 +221,7 @@ const CartPage = ({ addresses }: { addresses: AddressParams[] }) => {
               <p>Shipping</p>
               <p>
                 {process.env.NEXT_PUBLIC_CURRENCY}
-                {deducedShippingFee}
+                {deducedShippingFee.toFixed(2)}
               </p>
             </div>
 
@@ -233,7 +229,7 @@ const CartPage = ({ addresses }: { addresses: AddressParams[] }) => {
               <p>Total</p>
               <p>
                 {process.env.NEXT_PUBLIC_CURRENCY}
-                {totalCost + deducedShippingFee}
+                {(totalCost + deducedShippingFee).toFixed(2)}
               </p>
             </div>
           </div>

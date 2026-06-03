@@ -39,6 +39,7 @@ const BuyNowPage = ({
     setSelectedAddress(address);
     setIsDropdownOpen(false);
   };
+  const SHIPPING_FEE = 5;
 
   // Check if quantity qualifies for free shipping (Buy 3)
   const qualifiesForFreeShipping = quantity >= 3;
@@ -50,7 +51,7 @@ const BuyNowPage = ({
   const isShippingFree = qualifiesForFreeShipping || subscriptionFreeShipping;
   
   // Calculate final shipping fee
-  const finalShippingFee = isShippingFree ? 0 : product.product_shipping_fee;
+  const finalShippingFee = isShippingFree ? 0 : SHIPPING_FEE;
 
   // Calculate discount amount for promo
   const calculatePromoDiscount = () => {
@@ -96,46 +97,55 @@ const BuyNowPage = ({
   };
 
   const payNow = async () => {
-    if (!selectedAddress) return toast.error("Select an address first!");
-    try {
-      const orderMetadata = {
-        userId: session?.user?.id,
-        productName: product.name,
-        productCategory: product.category,
-        quantity,
-        image: product.image_url_array[0],
-        amount: finalTotal,
-        userEmail: session?.user?.email,
-        fullAddressFields: selectedAddress,
-        isSubscribe: isSubscribe,
-        subscriptionBenefit: isSubscribe ? "Free delivery on all orders" : null,
-        promoApplied: promoApplied ? promoCode : null,
-        freeShippingApplied: isShippingFree,
-      };
+  if (!selectedAddress) return toast.error("Select an address first!");
+  try {
+    // ── Only send lightweight data to Paystack metadata ──
+    const paystackMetadata = {
+      userId: session?.user?.id,
+      amount: finalTotal,
+      userEmail: session?.user?.email,
+    };
 
-      const res = await fetch("/api/paymentBuyNow", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: session?.user?.email,
-          amount: finalTotal * 100,
-          source: "buy-now",
-          metadata: orderMetadata,
-        }),
-      });
+    // ── Keep full data in localStorage only ──
+    const localStorageData = {
+      userId: session?.user?.id,
+      productName: product.name,
+      productCategory: product.category,
+      quantity,
+      image: product.image_url_array[0],
+      amount: finalTotal,
+      userEmail: session?.user?.email,
+      fullAddressFields: selectedAddress, // ← full address stays here only
+      isSubscribe,
+      promoApplied: promoApplied ? promoCode : null,
+      freeShippingApplied: isShippingFree,
+    };
 
-      const response = await res.json();
-      const authorization_url = response?.data?.authorization_url;
-      if (!authorization_url)
-        throw new Error(response.error || "Payment initialization failed");
+    const res = await fetch("/api/paymentBuyNow", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: session?.user?.email,
+        amount: finalTotal * 100 * 1375,
+        source: "buy-now",
+        metadata: paystackMetadata, // ← lightweight, won't truncate
+      }),
+    });
 
-      localStorage.setItem("paymentInformation", JSON.stringify(orderMetadata));
-      router.push(authorization_url);
-    } catch (err) {
-      console.error("Payment Error:", err);
-      toast.error("Payment failed. Please try again.");
-    }
-  };
+    const response = await res.json();
+    const authorization_url = response?.data?.authorization_url;
+    if (!authorization_url)
+      throw new Error(response.error || "Payment initialization failed");
+
+    // ── Save full data to localStorage BEFORE redirecting ──
+    localStorage.setItem("paymentInformation", JSON.stringify(localStorageData));
+    router.push(authorization_url);
+
+  } catch (err) {
+    console.error("Payment Error:", err);
+    toast.error("Payment failed. Please try again.");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -378,12 +388,11 @@ const BuyNowPage = ({
               <div className="text-right">
                 {isShippingFree ? (
                   <span className="text-green-600 line-through mr-2 text-sm">
-                    {process.env.NEXT_PUBLIC_CURRENCY}
-                    {product.product_shipping_fee}
+                    {process.env.NEXT_PUBLIC_CURRENCY}{SHIPPING_FEE.toFixed(2)}
                   </span>
                 ) : null}
                 <span className={isShippingFree ? "text-green-600 font-semibold" : ""}>
-                  {isShippingFree ? "FREE" : `${process.env.NEXT_PUBLIC_CURRENCY}${product.product_shipping_fee}`}
+                  {isShippingFree ? "FREE" : `${process.env.NEXT_PUBLIC_CURRENCY}${SHIPPING_FEE.toFixed(2)}`}
                 </span>
               </div>
             </div>
