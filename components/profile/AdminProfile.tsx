@@ -119,7 +119,7 @@ export default function AdminProfile({
             {orders.map((order) => (
               <div key={order.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col md:flex-row md:items-center gap-4">
                 {/* Image */}
-                <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0">
                   <Image src={order.image_url} alt={order.product_name} width={64} height={64} className="object-cover w-full h-full" />
                 </div>
 
@@ -182,7 +182,7 @@ export default function AdminProfile({
                     </div>
                   </div>
                   {review.review_images?.[0] && (
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0">
                       <Image src={review.review_images[0]} alt="review" width={64} height={64} className="object-cover w-full h-full" />
                     </div>
                   )}
@@ -200,7 +200,7 @@ export default function AdminProfile({
             )}
             {users.map((user: any) => (
               <div key={user.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#043033] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-[#043033] flex items-center justify-center text-white font-bold text-sm shrink-0">
                   {(user.email || user.full_name || "U")[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
