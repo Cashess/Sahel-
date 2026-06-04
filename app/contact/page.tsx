@@ -3,13 +3,15 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, User, MessageSquare, Package, Clock, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
+import toast from 'react-hot-toast'
 
-export default function ContactPage() {
+
+const Page: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
+
     subject: '',
     message: '',
     quantity: '',
@@ -70,7 +72,7 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       {/* Hero Section */}
       <div className="relative bg-[#043033] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -132,7 +134,7 @@ export default function ContactPage() {
             </div>
 
             {/* Why Choose Us */}
-            <div className="bg-gradient-to-br from-amber-50 to-white rounded-2xl shadow-lg p-6 border border-amber-100">
+            <div className="bg-linear-to-br from-amber-50 to-white rounded-2xl shadow-lg p-6 border border-amber-100">
               <h4 className="font-semibold text-gray-900 mb-4">Why Order From Us?</h4>
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-gray-700">
@@ -346,3 +348,6 @@ export default function ContactPage() {
     </div>
   );
 }
+
+
+export default Page
